@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 Hábitos Serx</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a10;
+    --surface: #12111a;
+    --surface2: #1a1825;
+    --border: #2c2840;
+    --text: #ede9f8;
+    --muted: #6e6880;
+    --violet: #7c3aed;
+    --violet-light: #8b5cf6;
+    --violet-dim: #2e1065;
+    --green: #10b981;
+    --green-dim: #064e3b;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --orange: #f97316;
+    --indigo: #6366f1;
+    --teal: #0f766e;
+    --emerald: #059669;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .app { max-width: 480px; margin: 0 auto; padding: 16px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .header h1 { font-size: 1.4rem; font-weight: 800; }
+  .header p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .btn { border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; transition: all 0.15s; border-radius: 12px; }
+  .btn-primary { background: var(--violet); color: white; padding: 14px; font-size: 1rem; width: 100%; margin-top: 16px; }
+  .btn-primary:hover { background: var(--violet-light); }
+  .btn-sm { background: var(--violet); color: white; padding: 8px 14px; font-size: 0.82rem; }
+  .btn-sm:hover { background: var(--violet-light); }
+  .btn-ghost { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); padding: 8px 14px; font-size: 0.82rem; }
+  .btn-back { background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; padding: 4px 8px; }
+  .btn-back:hover { color: var(--text); }
+  .btn-nav { background: var(--surface2); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+  .btn-nav:hover { background: var(--border); }
+  .btn-remove { background: none; border: none; color: #f87171; font-size: 1.2rem; cursor: pointer; padding: 0 4px; }
+  .btn-remove:hover { color: var(--red); }
+  .btn-toggle { width: 100%; padding: 16px; font-size: 1rem; font-weight: 700; border-radius: 16px; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; transition: all 0.2s; }
+  .btn-toggle.on { background: var(--green); color: white; }
+  .btn-toggle.off { background: var(--surface2); color: var(--muted); }
+  .btn-ai { width: 100%; padding: 10px; border-radius: 10px; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.8rem; background: rgba(124,58,237,0.2); color: #c4b5fd; transition: all 0.2s; }
+  .btn-ai:hover:not(:disabled) { background: rgba(124,58,237,0.35); }
+  .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ai-day { width: 100%; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.85rem; background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); transition: all 0.2s; margin-top: 6px; }
+  .btn-ai-day:hover:not(:disabled) { background: rgba(124,58,237,0.3); }
+  .btn-ai-day:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .card { background: var(--surface); border-radius: 16px; padding: 20px; margin-bottom: 14px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
+  .card-inner { background: var(--surface2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .cal-nav h2 { font-size: 1.05rem; font-weight: 700; }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 6px; }
+  .cal-days-header span { text-align: center; font-size: 0.68rem; color: var(--muted); padding: 4px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-cell { aspect-ratio: 1; border-radius: 10px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.82rem; position: relative; transition: all 0.15s; }
+  .cal-cell.empty { background: none; cursor: default; }
+  .cal-cell.no-data { background: var(--surface2); color: var(--muted); }
+  .cal-cell.no-data:hover { background: var(--border); }
+  .cal-cell.excellent { background: var(--emerald); color: white; }
+  .cal-cell.excellent:hover { background: #10b981; }
+  .cal-cell.good { background: var(--teal); color: white; }
+  .cal-cell.good:hover { background: #0d9488; }
+  .cal-cell.meh { background: #d97706; color: white; }
+  .cal-cell.meh:hover { background: var(--amber); }
+  .cal-cell.bad { background: #b91c1c; color: white; }
+  .cal-cell.bad:hover { background: var(--red); }
+  .cal-cell.is-today { outline: 2px solid white; outline-offset: 2px; }
+  .cal-cell-sub { font-size: 0.6rem; opacity: 0.8; font-weight: 600; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; text-align: center; margin-top: 10px; }
+  .summary-val { font-size: 1.2rem; font-weight: 800; }
+  .summary-label { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+  .tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 9px 4px; border: none; border-radius: 10px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.72rem; transition: all 0.15s; background: none; color: var(--muted); }
+  .tab.active { background: var(--violet); color: white; }
+  .tab:hover:not(.active) { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 5px; }
+  input[type=time], input[type=text], input[type=number], select, textarea {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+    padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: 0.9rem; width: 100%; outline: none; transition: border-color 0.15s;
+  }
+  input[type=text], select, textarea { font-family: 'Nunito', sans-serif; }
+  input:focus, select:focus, textarea:focus { border-color: var(--violet-light); }
+  textarea { resize: none; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row .flex1 { flex: 1; }
+
+  .sleep-feedback { border-radius: 12px; padding: 16px; text-align: center; margin-top: 6px; }
+  .sleep-feedback .big { font-size: 2rem; font-weight: 800; }
+  .sleep-feedback p { font-size: 0.82rem; margin-top: 4px; }
+  .sf-good { background: rgba(5,150,105,0.2); color: #6ee7b7; }
+  .sf-ok { background: rgba(245,158,11,0.2); color: #fcd34d; }
+  .sf-bad { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
+  .meal-item { background: var(--surface2); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .meal-row { display: flex; align-items: center; justify-content: space-between; }
+  .meal-time { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+  .meal-desc { font-size: 0.85rem; margin-top: 5px; color: var(--text); }
+  .health-badge { border-radius: 10px; padding: 10px 12px; margin-top: 8px; font-size: 0.8rem; }
+  .health-badge.good { background: rgba(5,150,105,0.2); color: #6ee7b7; border: 1px solid rgba(5,150,105,0.3); }
+  .health-badge.ok { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .health-badge.bad { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .health-badge-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 4px; }
+  .health-badge-sub { font-size: 0.73rem; opacity: 0.85; }
+  .day-analysis { border-radius: 14px; padding: 16px; margin-top: 10px; font-size: 0.82rem; }
+  .day-analysis h4 { font-weight: 800; font-size: 0.95rem; display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .day-analysis p { margin-bottom: 6px; opacity: 0.9; }
+  .day-analysis .tip { background: rgba(0,0,0,0.25); border-radius: 8px; padding: 8px; margin-top: 6px; font-size: 0.75rem; }
+
+  input.big-num { font-size: 1.6rem; font-weight: 800; text-align: center; font-family: 'Nunito', sans-serif; }
+  .sport-feedback { border-radius: 12px; padding: 12px; text-align: center; font-size: 0.82rem; margin-top: 6px; }
+  .study-total { border-radius: 12px; padding: 16px; text-align: center; }
+  .study-total .big { font-size: 2rem; font-weight: 800; }
+  .study-total p { font-size: 0.82rem; margin-top: 4px; }
+  .session-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .session-subject { color: #c4b5fd; font-weight: 700; font-size: 0.85rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session-min { font-family: 'DM Mono', monospace; font-size: 0.82rem; margin-left: 8px; }
+
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bar-val { font-size: 0.62rem; color: var(--muted); }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.6s ease; }
+  .bar-label { font-size: 0.62rem; color: var(--muted); }
+  .bar.indigo { background: var(--indigo); }
+  .bar.violet { background: var(--violet-light); }
+  .bar.emerald { background: var(--emerald); }
+  .bar.amber { background: var(--amber); }
+  .bar.red { background: var(--red); }
+  .bar.empty { background: var(--surface2); }
+  .chart-legend { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+  .chart-legend span { font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .sport-week { display: flex; gap: 4px; }
+  .sport-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .sport-icon { width: 100%; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .sport-icon.active { background: var(--green); }
+  .sport-icon.inactive { background: var(--surface2); }
+  .sport-icon.nodata { background: var(--surface2); }
+  .stat-bar-wrap { margin-bottom: 14px; }
+  .stat-bar-header { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 5px; }
+  .stat-bar-track { height: 10px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
+  .stat-bar-fill.green { background: var(--green); }
+  .stat-bar-fill.amber { background: var(--amber); }
+  .stat-bar-fill.red { background: var(--red); }
+  .stat-bar-fill.gray { background: var(--border); }
+  .summary-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+  .summary-card { background: var(--surface); border-radius: 14px; padding: 12px 8px; text-align: center; }
+  .summary-card .val { font-size: 1.2rem; font-weight: 800; }
+  .summary-card .lbl { font-size: 0.6rem; color: var(--muted); margin-top: 3px; }
+  .back-header { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .back-header h2 { font-size: 1.2rem; font-weight: 800; }
+  .edit-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .edit-header h2 { font-size: 1.2rem; font-weight: 800; }
+  .edit-header p { font-size: 0.78rem; color: var(--muted); }
+  .small-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- CALENDAR VIEW -->
+  <div class="view active" id="view-calendar">
+    <div class="header">
+      <div>
+        <h1>📖 Hábitos Serx</h1>
+        <p>Tu bienestar, día a día</p>
+      </div>
+      <button class="btn btn-sm" onclick="showView('stats')">📊 Stats</button>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:#059669"></div>Excelente</div>
+      <div class="legend-item"><div class="dot" style="background:#0f766e"></div>Bueno</div>
+      <div class="legend-item"><div class="dot" style="background:#d97706"></div>Mejorable</div>
+      <div class="legend-item"><div class="dot" style="background:#b91c1c"></div>Atención</div>
+    </div>
+
+    <div class="cal-nav">
+      <button class="btn-nav" onclick="changeMonth(-1)">‹</button>
+      <h2 id="cal-title"></h2>
+      <button class="btn-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-days-header">
+      <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="card" id="today-summary" style="display:none;margin-top:20px;">
+      <h3>📋 Hoy</h3>
+      <div class="summary-grid" id="today-grid"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startEdit(todayKey())">+ Registrar hoy</button>
+  </div>
+
+  <!-- EDIT VIEW -->
+  <div class="view" id="view-edit">
+    <div class="edit-header">
+      <button class="btn-back" onclick="showView('calendar')">←</button>
+      <div>
+        <h2>Registro del día</h2>
+        <p id="edit-date-label"></p>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this,'sleep')">🌙 Sueño</button>
+      <button class="tab" onclick="switchTab(this,'meals')">🍽️ Comidas</button>
+      <button class="tab" onclick="switchTab(this,'sport')">🏃 Deporte</button>
+      <button class="tab" onclick="switchTab(this,'study')">📚 Estudio</button>
+    </div>
+
+    <!-- Sleep -->
+    <div class="tab-content active" id="tab-sleep">
+      <div class="card">
+        <h3 style="color:#a5b4fc">🌙 Horario de sueño</h3>
+        <div class="grid-2">
+          <div><label>Me acosté</label><input type="time" id="sleep-start" value="23:00" oninput="updateSleepFeedback()"></div>
+          <div><label>Me levanté</label><input type="time" id="sleep-end" value="07:00" oninput="updateSleepFeedback()"></div>
+        </div>
+        <div class="sleep-feedback sf-good" id="sleep-feedback">
+          <div class="big" id="sleep-hours">8h</div>
+          <p id="sleep-msg">✅ Excelente descanso</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meals -->
+    <div class="tab-content" id="tab-meals">
+      <div class="card">
+        <h3 style="color:#fdba74">🍽️ Comidas del día</h3>
+        <div class="card-inner">
+          <p class="small-label">Nueva comida</p>
+          <div class="row" style="margin-bottom:8px;">
+            <div style="width:110px;"><label>Hora</label><input type="time" id="meal-time" value="08:00"></div>
+            <div class="flex1"><label>Tipo</label>
+              <select id="meal-type">
+                <option value="home">🏠 En casa</option>
+                <option value="bought">🛒 Comprada</option>
+                <option value="restaurant">🍴 Restaurante</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="flex1"><label>¿Qué comiste?</label><input type="text" id="meal-desc" placeholder="ej: arroz con pollo y ensalada..."></div>
+            <div style="padding-top:20px;"><button class="btn btn-sm" style="background:#ea580c;padding:10px 14px;" onclick="addMeal()">+</button></div>
+          </div>
+        </div>
+        <div id="meals-list"></div>
+        <div id="btn-analyze-day-wrap" style="display:none;">
+          <button class="btn-ai-day" id="btn-analyze-day" onclick="analyzeDayMeals()">🤖 Analizar alimentación del día completo</button>
+        </div>
+        <div id="day-analysis-result"></div>
+      </div>
+    </div>
+
+    <!-- Sport -->
+    <div class="tab-content" id="tab-sport">
+      <div class="card">
+        <h3 style="color:#6ee7b7">🏃 Actividad física</h3>
+        <button class="btn-toggle off" id="sport-btn" onclick="toggleSport()">❌ Sin ejercicio hoy</button>
+        <div id="sport-details" style="display:none;margin-top:14px;">
+          <div style="margin-bottom:12px;"><label>Tipo de deporte</label><input type="text" id="sport-type" placeholder="ej. Correr, Natación, Gym..."></div>
+          <div><label>Duración (minutos)</label><input type="number" id="sport-minutes" class="big-num" min="0" max="300" value="30" oninput="updateSportFeedback()"></div>
+          <div class="sport-feedback sf-good" id="sport-feedback" style="margin-top:8px;">✅ Cumples la recomendación diaria</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study -->
+    <div class="tab-content" id="tab-study">
+      <div class="card">
+        <h3 style="color:#c4b5fd">📚 Tiempo de estudio</h3>
+        <div class="card-inner">
+          <p class="small-label">Nueva sesión</p>
+          <div class="row">
+            <div class="flex1"><input type="text" id="session-subject" placeholder="Asignatura / tema..."></div>
+            <div style="width:80px;"><input type="number" id="session-minutes" min="5" max="480" value="30" style="text-align:center;"></div>
+            <div style="color:var(--muted);align-self:center;font-size:0.82rem;padding-bottom:2px;">min</div>
+            <div><button class="btn btn-sm" onclick="addStudySession()">+</button></div>
+          </div>
+        </div>
+        <div id="sessions-list"></div>
+        <div class="study-total sf-good" id="study-total" style="margin-top:8px;">
+          <div class="big" id="study-total-val">0h 0min</div>
+          <p id="study-total-msg">📖 Intenta estudiar al menos 1–2h al día</p>
+        </div>
+        <div style="margin-top:14px;"><label>Notas</label><textarea id="day-notes" rows="2" placeholder="¿Cómo fue el día de estudio?"></textarea></div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveDay()">💾 Guardar día</button>
+  </div>
+
+  <!-- STATS VIEW -->
+  <div class="view" id="view-stats">
+    <div class="back-header">
+      <button class="btn-back" onclick="showView('calendar')">←</button>
+      <h2>📊 Estadísticas semanales</h2>
+    </div>
+
+    <div class="card">
+      <h3>🌙 Sueño últimos 7 días</h3>
+      <div class="chart-bars" id="sleep-chart"></div>
+    </div>
+
+    <div class="card">
+      <h3>🥗 Salud alimentaria (puntuación media)</h3>
+      <div class="chart-bars" id="health-chart"></div>
+      <div class="chart-legend">
+        <span><div class="dot" style="background:#10b981"></div>75+ saludable</span>
+        <span><div class="dot" style="background:var(--amber)"></div>45–74 aceptable</span>
+        <span><div class="dot" style="background:var(--red)"></div>&lt;45 mejorable</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📚 Estudio últimos 7 días</h3>
+      <div class="chart-bars" id="study-chart"></div>
+      <p id="study-week-total" style="text-align:center;margin-top:8px;color:var(--muted);font-size:0.82rem;"></p>
+    </div>
+
+    <div class="card">
+      <h3>🏃 Deporte esta semana</h3>
+      <div class="sport-week" id="sport-week"></div>
+      <p id="sport-days-label" style="text-align:center;margin-top:10px;color:var(--muted);font-size:0.82rem;"></p>
+    </div>
+
+    <div class="card">
+      <h3>💚 Comparativa con hábitos saludables</h3>
+      <div id="stat-bars"></div>
+    </div>
+
+    <div class="summary-cards" id="summary-cards"></div>
+  </div>
+
+</div>
+
+<script>
+const DAYS_ES = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MONTHS_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+let currentMonth = new Date();
+let appData = {};
+let editingKey = null;
+let editDay = null;
+
+function loadData() {
+  try { appData = JSON.parse(localStorage.getItem('habitDataSerx') || '{}'); } catch {}
+}
+function saveData() {
+  try { localStorage.setItem('habitDataSerx', JSON.stringify(appData)); } catch {}
+}
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+function toKey(d) { return d.toISOString().split('T')[0]; }
+function emptyDay() {
+  return { sleepStart:'23:00', sleepEnd:'07:00', meals:[], sport:false, sportType:'', sportMinutes:0, studyMinutes:0, studySessions:[], notes:'' };
+}
+function calcSleep(s, e) {
+  const [sh,sm] = s.split(':').map(Number);
+  const [eh,em] = e.split(':').map(Number);
+  let start = sh*60+sm, end = eh*60+em;
+  if (end <= start) end += 24*60;
+  return Math.round((end-start)/60*10)/10;
+}
+function healthClass(score) {
+  if (score === null || score === undefined) return '';
+  return score >= 75 ? 'good' : score >= 45 ? 'ok' : 'bad';
+}
+
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  if (v === 'calendar') renderCalendar();
+  if (v === 'stats') renderStats();
+}
+
+function switchTab(btn, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function getDayColor(key) {
+  const d = appData[key];
+  if (!d) return 'no-data';
+  const sh = calcSleep(d.sleepStart, d.sleepEnd);
+  const studyOk = (d.studyMinutes||0) >= 60;
+  const issues = (sh < 6 || sh > 10 ? 1 : 0) + (d.meals.length < 2 ? 1 : 0) + (!studyOk ? 1 : 0);
+  if (issues === 0 && d.sport) return 'excellent';
+  if (issues === 0) return 'good';
+  if (issues >= 3) return 'bad';
+  return 'meh';
+}
+
+function renderCalendar() {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  document.getElementById('cal-title').textContent = MONTHS_ES[month] + ' ' + year;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const tk = todayKey();
+  let html = '';
+
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-cell empty"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const d = appData[key];
+    const color = getDayColor(key);
+    const isToday = key === tk ? 'is-today' : '';
+    const sh = d ? calcSleep(d.sleepStart, d.sleepEnd) : null;
+    const sm = d ? (d.studyMinutes || 0) : 0;
+    const studyH = sm > 0 ? Math.floor(sm/60) : 0;
+    const scoredMeals = d ? d.meals.filter(m => m.healthScore != null) : [];
+    const avgH = scoredMeals.length ? Math.round(scoredMeals.reduce((a,m)=>a+m.healthScore,0)/scoredMeals.length) : null;
+    const sleepSub = d ? `<span class="cal-cell-sub">${sh}h</span>` : '';
+    const healthSub = avgH !== null ? `<span class="cal-cell-sub">🥗${avgH}</span>` : '';
+    const sportSub = d && d.sport ? '<span class="cal-cell-sub">🏃</span>' : '';
+    html += `<button class="cal-cell ${color} ${isToday}" onclick="startEdit('${key}')">
+      <span>${day}</span>${sleepSub}${healthSub}${sportSub}
+    </button>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+
+  const td = appData[tk];
+  const ts = document.getElementById('today-summary');
+  if (td) {
+    ts.style.display = 'block';
+    const sh = calcSleep(td.sleepStart, td.sleepEnd);
+    const sm = td.studyMinutes || 0;
+    const scoredMeals = td.meals.filter(m => m.healthScore != null);
+    const avgH = scoredMeals.length ? Math.round(scoredMeals.reduce((a,m)=>a+m.healthScore,0)/scoredMeals.length) : null;
+    const hColor = avgH === null ? 'var(--muted)' : avgH >= 75 ? '#6ee7b7' : avgH >= 45 ? '#fcd34d' : '#fca5a5';
+    document.getElementById('today-grid').innerHTML = `
+      <div><div class="summary-val" style="color:#a5b4fc">${sh}h</div><div class="summary-label">Sueño</div></div>
+      <div><div class="summary-val" style="color:${hColor}">${avgH??'—'}</div><div class="summary-label">Salud comida</div></div>
+      <div><div class="summary-val" style="color:#6ee7b7">${td.sport ? td.sportMinutes+'m' : '—'}</div><div class="summary-label">Deporte</div></div>
+      <div><div class="summary-val" style="color:#c4b5fd">${sm>0?Math.floor(sm/60)+'h'+(sm%60>0?sm%60+'m':''):'—'}</div><div class="summary-label">Estudio</div></div>
+    `;
+  } else { ts.style.display = 'none'; }
+}
+
+function changeMonth(dir) {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+dir, 1);
+  renderCalendar();
+}
+
+function startEdit(key) {
+  editingKey = key;
+  editDay = JSON.parse(JSON.stringify(appData[key] || emptyDay()));
+  document.getElementById('edit-date-label').textContent = key;
+
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
+
+  document.getElementById('sleep-start').value = editDay.sleepStart;
+  document.getElementById('sleep-end').value = editDay.sleepEnd;
+  updateSleepFeedback();
+
+  renderMeals();
+  document.getElementById('day-analysis-result').innerHTML = '';
+
+  document.getElementById('sport-btn').className = 'btn-toggle '+(editDay.sport?'on':'off');
+  document.getElementById('sport-btn').textContent = editDay.sport ? '✅ Hice deporte hoy' : '❌ Sin ejercicio hoy';
+  document.getElementById('sport-details').style.display = editDay.sport ? 'block' : 'none';
+  document.getElementById('sport-type').value = editDay.sportType;
+  document.getElementById('sport-minutes').value = editDay.sportMinutes;
+  updateSportFeedback();
+
+  renderSessions();
+  document.getElementById('day-notes').value = editDay.notes;
+
+  showView('edit');
+}
+
+function updateSleepFeedback() {
+  const s = document.getElementById('sleep-start').value;
+  const e = document.getElementById('sleep-end').value;
+  const h = calcSleep(s, e);
+  document.getElementById('sleep-hours').textContent = h+'h';
+  const fb = document.getElementById('sleep-feedback');
+  if (h >= 7 && h <= 9) { fb.className='sleep-feedback sf-good'; document.getElementById('sleep-msg').textContent='✅ Excelente descanso'; }
+  else if (h >= 6) { fb.className='sleep-feedback sf-ok'; document.getElementById('sleep-msg').textContent='⚠️ Algo corto, intenta dormir más'; }
+  else { fb.className='sleep-feedback sf-bad'; document.getElementById('sleep-msg').textContent='❌ Muy poco sueño'; }
+}
+
+function renderMeals() {
+  const typeLabel = { home:'🏠 En casa', bought:'🛒 Comprada', restaurant:'🍴 Restaurante' };
+  const list = document.getElementById('meals-list');
+  if (!editDay.meals.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:16px 0;font-size:0.82rem;">Sin comidas registradas</p>';
+  } else {
+    list.innerHTML = editDay.meals.map(m => {
+      const hb = m.healthScore != null ? `
+        <div class="health-badge ${healthClass(m.healthScore)}">
+          <div class="health-badge-head">
+            <span>${m.healthFeedback?.emoji||''} ${m.healthFeedback?.verdict||''}</span>
+            <span>${m.healthScore}/100</span>
+          </div>
+          ${m.healthFeedback?.good ? `<div class="health-badge-sub">✓ ${m.healthFeedback.good}</div>` : ''}
+          ${m.healthFeedback?.bad ? `<div class="health-badge-sub">↑ ${m.healthFeedback.bad}</div>` : ''}
+        </div>` : (m.description ? `<button class="btn-ai" onclick="analyzeMeal(${m.id})" id="btn-ai-${m.id}">🤖 Analizar con IA</button>` : '');
+      return `<div class="meal-item">
+        <div class="meal-row">
+          <span class="meal-time">${m.time}</span>
+          <span style="font-size:0.82rem;">${typeLabel[m.type]||m.type}</span>
+          <button class="btn-remove" onclick="removeMeal(${m.id})">×</button>
+        </div>
+        ${m.description ? `<div class="meal-desc">${m.healthFeedback?.emoji||''} ${m.description}</div>` : ''}
+        ${hb}
+      </div>`;
+    }).join('');
+  }
+  const withDesc = editDay.meals.filter(m => m.description);
+  document.getElementById('btn-analyze-day-wrap').style.display = withDesc.length >= 2 ? 'block' : 'none';
+}
+
+function addMeal() {
+  const time = document.getElementById('meal-time').value;
+  const type = document.getElementById('meal-type').value;
+  const description = document.getElementById('meal-desc').value.trim();
+  editDay.meals.push({ time, type, description, id: Date.now(), healthScore: null, healthFeedback: null });
+  editDay.meals.sort((a,b) => a.time.localeCompare(b.time));
+  document.getElementById('meal-desc').value = '';
+  renderMeals();
+}
+
+function removeMeal(id) {
+  editDay.meals = editDay.meals.filter(m => m.id !== id);
+  renderMeals();
+}
+
+async function analyzeMeal(id) {
+  const meal = editDay.meals.find(m => m.id === id);
+  if (!meal || !meal.description) return;
+  const btn = document.getElementById('btn-ai-'+id);
+  if (btn) { btn.disabled = true; btn.textContent = '🤖 Analizando...'; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: `Analiza si esta comida es saludable: "${meal.description}". Responde SOLO con JSON válido sin backticks: {"score": <0-100>, "emoji": "<1 emoji>", "verdict": "<max 6 palabras>", "good": "<1 punto positivo breve>", "bad": "<1 punto a mejorar o null>"}` }]
+      })
+    });
+    const d = await res.json();
+    const text = d.content?.map(c => c.text||'').join('') || '';
+    const parsed = JSON.parse(text.trim());
+    editDay.meals = editDay.meals.map(m => m.id === id ? { ...m, healthScore: parsed.score, healthFeedback: parsed } : m);
+    renderMeals();
+  } catch(e) { console.error(e); if (btn) { btn.disabled=false; btn.textContent='🤖 Analizar con IA'; } }
+}
+
+async function analyzeDayMeals() {
+  const withDesc = editDay.meals.filter(m => m.description);
+  if (withDesc.length < 2) return;
+  const btn = document.getElementById('btn-analyze-day');
+  btn.disabled = true; btn.textContent = '🤖 Analizando el día...';
+  try {
+    const mealsList = withDesc.map((m,i) => {
+      const typeLabel = { home:'En casa', bought:'Comprada', restaurant:'Restaurante' };
+      return `${i+1}. ${m.time} - ${m.description} (${typeLabel[m.type]||m.type})`;
+    }).join('\n');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: `Analiza la alimentación del día:\n${mealsList}\n\nResponde SOLO con JSON sin backticks: {"overallScore":<0-100>,"summary":"<1 frase>","strengths":["<punto 1>","<punto 2>"],"improvements":["<mejora 1>","<mejora 2>"],"tip":"<consejo breve para mañana>"}` }]
+      })
+    });
+    const d = await res.json();
+    const text = d.content?.map(c => c.text||'').join('') || '';
+    const p = JSON.parse(text.trim());
+    const cls = healthClass(p.overallScore);
+    document.getElementById('day-analysis-result').innerHTML = `
+      <div class="day-analysis health-badge ${cls}" style="margin-top:10px;">
+        <h4>Resumen del día <span>${p.overallScore}/100</span></h4>
+        <p>${p.summary}</p>
+        ${(p.strengths||[]).map(s=>`<p>✅ ${s}</p>`).join('')}
+        ${(p.improvements||[]).map(s=>`<p>⚠️ ${s}</p>`).join('')}
+        ${p.tip ? `<div class="tip">💡 <strong>Consejo para mañana:</strong> ${p.tip}</div>` : ''}
+      </div>`;
+  } catch(e) { console.error(e); }
+  btn.disabled = false; btn.textContent = '🤖 Analizar alimentación del día completo';
+}
+
+function toggleSport() {
+  editDay.sport = !editDay.sport;
+  document.getElementById('sport-btn').className = 'btn-toggle '+(editDay.sport?'on':'off');
+  document.getElementById('sport-btn').textContent = editDay.sport ? '✅ Hice deporte hoy' : '❌ Sin ejercicio hoy';
+  document.getElementById('sport-details').style.display = editDay.sport ? 'block' : 'none';
+}
+
+function updateSportFeedback() {
+  const m = Number(document.getElementById('sport-minutes').value);
+  const fb = document.getElementById('sport-feedback');
+  fb.className = 'sport-feedback '+(m >= 30 ? 'sf-good' : 'sf-ok');
+  fb.textContent = m >= 30 ? '✅ Cumples la recomendación diaria' : '⚠️ La OMS recomienda al menos 30 min';
+}
+
+function renderSessions() {
+  const list = document.getElementById('sessions-list');
+  if (!editDay.studySessions.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:12px 0;font-size:0.82rem;">Sin sesiones registradas</p>';
+  } else {
+    list.innerHTML = editDay.studySessions.map(s => `
+      <div class="session-item">
+        <span class="session-subject">${s.subject}</span>
+        <span class="session-min">${s.minutes}min</span>
+        <button class="btn-remove" onclick="removeStudySession(${s.id})">×</button>
+      </div>`).join('');
+  }
+  updateStudyTotal();
+}
+
+function updateStudyTotal() {
+  const total = editDay.studySessions.reduce((a,s) => a+Number(s.minutes), 0);
+  document.getElementById('study-total-val').textContent = `${Math.floor(total/60)}h ${total%60}min`;
+  const el = document.getElementById('study-total');
+  const msg = document.getElementById('study-total-msg');
+  if (total >= 180) { el.className='study-total sf-good'; msg.textContent='🔥 ¡Sesión increíble!'; }
+  else if (total >= 120) { el.className='study-total sf-good'; msg.textContent='✅ Muy buen día de estudio'; }
+  else if (total >= 60) { el.className='study-total sf-ok'; msg.textContent='⚠️ Bien, pero puedes dar más'; }
+  else { el.className='study-total'; el.style.background='var(--surface2)'; el.style.color='var(--muted)'; msg.textContent='📖 Intenta estudiar al menos 1–2h al día'; }
+}
+
+function addStudySession() {
+  const subject = document.getElementById('session-subject').value.trim();
+  const minutes = Number(document.getElementById('session-minutes').value);
+  if (!subject) return;
+  editDay.studySessions.push({ subject, minutes, id: Date.now() });
+  editDay.studyMinutes = editDay.studySessions.reduce((a,s)=>a+Number(s.minutes),0);
+  document.getElementById('session-subject').value = '';
+  renderSessions();
+}
+
+function removeStudySession(id) {
+  editDay.studySessions = editDay.studySessions.filter(s => s.id !== id);
+  editDay.studyMinutes = editDay.studySessions.reduce((a,s)=>a+Number(s.minutes),0);
+  renderSessions();
+}
+
+function saveDay() {
+  editDay.sleepStart = document.getElementById('sleep-start').value;
+  editDay.sleepEnd = document.getElementById('sleep-end').value;
+  editDay.sportType = document.getElementById('sport-type').value;
+  editDay.sportMinutes = Number(document.getElementById('sport-minutes').value);
+  editDay.notes = document.getElementById('day-notes').value;
+  editDay.studyMinutes = editDay.studySessions.reduce((a,s)=>a+Number(s.minutes),0);
+  appData[editingKey] = editDay;
+  saveData();
+  showView('calendar');
+}
+
+function getWeekStats() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate()-i); days.push(toKey(d)); }
+  return days.map(key => {
+    const d = appData[key];
+    if (!d) return { key, label: DAYS_ES[new Date(key+'T12:00:00').getDay()], sleepHours:null, meals:null, homePct:null, sportMin:null, studyMin:null, avgHealth:null };
+    const sh = calcSleep(d.sleepStart, d.sleepEnd);
+    const home = d.meals.filter(m => m.type==='home').length;
+    const total = d.meals.length;
+    const scored = d.meals.filter(m => m.healthScore != null);
+    const avgH = scored.length ? Math.round(scored.reduce((a,m)=>a+m.healthScore,0)/scored.length) : null;
+    return {
+      key, label: DAYS_ES[new Date(key+'T12:00:00').getDay()],
+      sleepHours: sh, meals: total,
+      homePct: total > 0 ? Math.round(home/total*100) : null,
+      sportMin: d.sport ? d.sportMinutes : 0,
+      studyMin: d.studyMinutes || 0,
+      avgHealth: avgH
+    };
+  });
+}
+
+function avg(stats, key) {
+  const vals = stats.map(d => d[key]).filter(v => v !== null);
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10;
+}
+
+function renderStats() {
+  const stats = getWeekStats();
+
+  // Sleep chart
+  document.getElementById('sleep-chart').innerHTML = stats.map(d => {
+    const h = d.sleepHours;
+    const pct = h === null ? 0 : Math.min(100, h/10*100);
+    const cls = h===null?'empty':h>=7&&h<=9?'indigo':h>=6?'amber':'red';
+    return `<div class="bar-wrap"><span class="bar-val">${h!==null?h+'h':''}</span><div class="bar ${cls}" style="height:${Math.max(pct,h!==null?5:0)}%"></div><span class="bar-label">${d.label}</span></div>`;
+  }).join('');
+
+  // Health chart
+  document.getElementById('health-chart').innerHTML = stats.map(d => {
+    const h = d.avgHealth;
+    const pct = h === null ? 0 : Math.min(100, h);
+    const cls = h===null?'empty':h>=75?'emerald':h>=45?'amber':'red';
+    return `<div class="bar-wrap"><span class="bar-val">${h!==null?h:''}</span><div class="bar ${cls}" style="height:${Math.max(pct,h!==null?5:0)}%"></div><span class="bar-label">${d.label}</span></div>`;
+  }).join('');
+
+  // Study chart
+  const totalStudyWeek = stats.reduce((a,d)=>a+(d.studyMin||0),0);
+  const studyDays = stats.filter(d=>d.studyMin!==null&&d.studyMin>0).length;
+  document.getElementById('study-chart').innerHTML = stats.map(d => {
+    const m = d.studyMin;
+    const pct = m===null?0:Math.min(100,m/240*100);
+    const cls = m===null?'empty':m>=120?'violet':m>=60?'amber':'red';
+    return `<div class="bar-wrap"><span class="bar-val">${m!==null&&m>0?Math.floor(m/60)+'h':''}</span><div class="bar ${cls}" style="height:${Math.max(pct,m!==null?4:0)}%"></div><span class="bar-label">${d.label}</span></div>`;
+  }).join('');
+  document.getElementById('study-week-total').innerHTML = `Total: <strong style="color:#c4b5fd">${Math.floor(totalStudyWeek/60)}h ${totalStudyWeek%60}min</strong> · ${studyDays}/7 días`;
+
+  // Sport
+  const sportDays = stats.filter(d=>d.sportMin!==null&&d.sportMin>0).length;
+  document.getElementById('sport-week').innerHTML = stats.map(d => {
+    const active = d.sportMin!==null&&d.sportMin>0;
+    const nodata = d.sportMin===null;
+    return `<div class="sport-day"><div class="sport-icon ${nodata?'nodata':active?'active':'inactive'}">${!nodata?(active?'🏃':'💤'):''}</div><span class="bar-label">${d.label}</span></div>`;
+  }).join('');
+  document.getElementById('sport-days-label').textContent = `${sportDays}/7 días activos`;
+
+  // Stat bars
+  const a = { sleep:avg(stats,'sleepHours'), meals:avg(stats,'meals'), homePct:avg(stats,'homePct'), sport:avg(stats,'sportMin'), study:avg(stats,'studyMin'), health:avg(stats,'avgHealth') };
+  const bars = [
+    { label:'🌙 Horas de sueño', val:a.sleep, ideal:8, unit:'h', idealLabel:'7–9h' },
+    { label:'🍽️ Comidas al día', val:a.meals, ideal:4, unit:'', idealLabel:'3–5' },
+    { label:'🏠 Comidas en casa', val:a.homePct, ideal:80, unit:'%', idealLabel:'>80%' },
+    { label:'🥗 Salud alimentaria', val:a.health, ideal:75, unit:'/100', idealLabel:'>75' },
+    { label:'🏃 Minutos de ejercicio', val:a.sport, ideal:45, unit:'min', idealLabel:'30–60 min' },
+    { label:'📚 Minutos de estudio', val:a.study, ideal:120, unit:'min', idealLabel:'2–3h/día' },
+  ];
+  document.getElementById('stat-bars').innerHTML = bars.map(b => {
+    const pct = b.val===null?0:Math.min(100,Math.round(Math.abs(b.val)/(b.ideal*1.5)*100));
+    const col = b.val===null?'gray':b.val>=b.ideal?'green':b.val>=b.ideal*0.6?'amber':'red';
+    return `<div class="stat-bar-wrap">
+      <div class="stat-bar-header"><span>${b.label}</span><span style="font-weight:700">${b.val!==null?b.val+b.unit:'—'} <span style="color:var(--muted);font-size:0.72rem;font-weight:400">/ ideal: ${b.idealLabel}</span></span></div>
+      <div class="stat-bar-track"><div class="stat-bar-fill ${col}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  const hColor = a.health===null?'var(--muted)':a.health>=75?'#6ee7b7':a.health>=45?'#fcd34d':'#fca5a5';
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="summary-card"><div class="val" style="color:#a5b4fc">${a.sleep!==null?a.sleep+'h':'—'}</div><div class="lbl">Sueño</div></div>
+    <div class="summary-card"><div class="val" style="color:${hColor}">${a.health??'—'}</div><div class="lbl">Salud comida</div></div>
+    <div class="summary-card"><div class="val" style="color:#6ee7b7">${sportDays}/7</div><div class="lbl">Deporte</div></div>
+    <div class="summary-card"><div class="val" style="color:#c4b5fd">${a.study!==null?Math.floor(a.study/60)+'h':'—'}</div><div class="lbl">Estudio</div></div>
+  `;
+}
+
+loadData();
+renderCalendar();
+</script>
+</body>
+</html>
